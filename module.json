@@ -1,0 +1,31 @@
+{
+  "name": "concentrator",
+  "title": "Concentrator for dnd5e",
+  "description": "Track concentration when you cast spells and trigger saving throw.",
+  "author": "kaelad",
+  "version": "0.1",
+  "minimumCoreVersion": "0.8.9",
+  "compatibleCoreVersion": "0.8.9",
+  "dependencies": [
+    {
+      "name": "dfreds-convenient-effects"
+    },
+    {
+      "name": "dae"
+    },
+    {
+      "name": "lib-wrapper"
+    }
+  ],
+  "systems": [
+    "dnd5e"
+  ],
+  "esmodules": [
+    "src/concentrator.js"
+  ],
+  "url": "replaced by workflow",
+  "manifest": "replaced by workflow",
+  "download": "replaced by workflow",
+  "changelog": "replaced by workflow",
+  "readme": "replaced by workflow"
+}
