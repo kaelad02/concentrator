@@ -1,5 +1,5 @@
 import { registerSettings, fetchSettings } from "./settings.js";
-import { debug, log } from "./util.js";
+import { debug, isModuleActive, log } from "./util.js";
 import concentrationItem from "./fvtt-Item-concentration-check.js";
 
 const EFFECT_NAME = "Concentrating";
@@ -60,22 +60,27 @@ async function addConcentration(item, actor) {
   statusEffect = statusEffect.convertToActiveEffectData(item.uuid);
 
   // copy over the item duration to the status effect using DAE
-  const itemDuration = item.data.data.duration;
-  debug(`itemDuration ${itemDuration}`);
-  const convertedDuration = globalThis.DAE.convertDuration(itemDuration, false);
-  debug(`convertedDuration ${convertedDuration}`);
-  if (convertedDuration?.type === "seconds") {
-    statusEffect.duration = {
-      seconds: convertedDuration.seconds,
-      startTime: game.time.worldTime,
-    };
-  } else if (convertedDuration?.type === "turns") {
-    statusEffect.duration = {
-      rounds: convertedDuration.rounds,
-      turns: convertedDuration.turns,
-      startRound: game.combat?.round,
-      startTurn: game.combat?.turn,
-    };
+  if (isModuleActive("dae")) {
+    const itemDuration = item.data.data.duration;
+    debug(`itemDuration ${itemDuration}`);
+    const convertedDuration = globalThis.DAE.convertDuration(
+      itemDuration,
+      false
+    );
+    debug(`convertedDuration ${convertedDuration}`);
+    if (convertedDuration?.type === "seconds") {
+      statusEffect.duration = {
+        seconds: convertedDuration.seconds,
+        startTime: game.time.worldTime,
+      };
+    } else if (convertedDuration?.type === "turns") {
+      statusEffect.duration = {
+        rounds: convertedDuration.rounds,
+        turns: convertedDuration.turns,
+        startRound: game.combat?.round,
+        startTurn: game.combat?.turn,
+      };
+    }
   }
 
   // enable effect
