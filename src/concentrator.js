@@ -9,7 +9,13 @@ Hooks.once("init", () => {
   registerSettings();
   fetchSettings();
 
-  // Add wrapper to detect casting spells w/ concentration
+  // Add wrappers to detect casting spells w/ concentration
+  libWrapper.register(
+    "concentrator",
+    "CONFIG.Item.documentClass.prototype.roll",
+    onRoll,
+    "WRAPPER"
+  );
   libWrapper.register(
     "concentrator",
     "CONFIG.Item.documentClass.prototype.displayCard",
@@ -32,6 +38,51 @@ Hooks.once("ready", () => {
     Hooks.on("updateActor", onUpdateActor);
   }
 });
+
+async function onRoll(wrapped, options, ...rest) {
+  debug("onRoll method called");
+
+  // do not processs if the item doesn't require concentration
+  if (!this.data.data.components?.concentration)
+    return wrapped(options, ...rest);
+
+  // capture usages before casting the spell
+  const before = getUsages(item);
+
+  const result = await wrapped(options, ...rest);
+  if (result) {
+    // if usages changed then add concentration
+    const after = getUsages(item);
+    if (after.spellSlots < before.spellSlots || after.uses < before.uses)
+      addConcentration(this, this.actor);
+  }
+
+  return result;
+}
+
+function getUsages(item) {
+  const id = item.data.data;
+  const ad = item.actor.data.data;
+
+  // check spell slots
+  let spellSlots = null;
+  const requireSpellSlot =
+    item.type === "spell" &&
+    id.level > 0 &&
+    CONFIG.DND5E.spellUpcastModes.includes(id.preparation.mode);
+  if (requireSpellSlot) {
+    spellSlots = Object.values(ad.spells)
+      .map((s) => s.value)
+      .reduce((accum, value) => accum + value, 0);
+  }
+
+  // check limited uses
+  const uses = !!id.uses?.per ? id.uses.value : null;
+
+  // TODO check resource consumption
+
+  return { spellSlots, uses };
+}
 
 /**
  * Wrapper for Item5e's displayCard method that detects when a spell w/ concentration is cast.
