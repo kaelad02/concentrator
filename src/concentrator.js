@@ -31,13 +31,8 @@ Hooks.once("init", () => {
 });
 
 // Add hooks to trigger concentration check
-Hooks.once("ready", () => {
-  Hooks.on("preUpdateActor", onPreUpdateActor);
-  // GM only so we don't get a check from each user
-  if (game.user.isGM) {
-    Hooks.on("updateActor", onUpdateActor);
-  }
-});
+Hooks.on("preUpdateActor", onPreUpdateActor);
+Hooks.on("updateActor", onUpdateActor);
 
 async function onRoll(wrapped, options, ...rest) {
   debug("onRoll method called");
@@ -234,6 +229,9 @@ function onPreUpdateActor(actor, updateData, options, userId) {
  */
 function onUpdateActor(actor, updateData, options, userId) {
   debug("onUpdateActor called");
+
+  // only perform check on the user who made the change
+  if (userId !== game.userId) return;
 
   // check for flag and concentrating
   if (options.originalHpValue && isConcentrating(actor)) {
