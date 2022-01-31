@@ -16,6 +16,11 @@ Hooks.once("init", () => {
     onDisplayCard,
     "WRAPPER"
   );
+
+  const chatListeners = (app, html, data) =>
+    html.on("click", ".concentrator .card-buttons button", onChatCardButton);
+  Hooks.on("renderChatLog", chatListeners);
+  Hooks.on("renderChatPopout", chatListeners);
 });
 
 // Add hooks to trigger concentration check
@@ -43,10 +48,56 @@ async function onDisplayCard(wrapped, options, ...rest) {
 
     const speaker = ChatMessage.getSpeakerActor(chatMessage.data?.speaker);
     debug(speaker);
-    addConcentration(this, speaker);
+    //addConcentration(this, speaker);
+    whisperMessage(this, speaker);
   }
 
   return chatMessage;
+}
+
+async function whisperMessage(item, actor) {
+  const html = await renderTemplate(
+    "modules/concentrator/templates/ask-to-add.hbs",
+    { item, actor }
+  );
+
+  const messageData = {
+    whisper: [game.userId],
+    user: game.userId,
+    flags: {
+      core: {
+        canPopout: true,
+      },
+      concentrator: {
+        itemId: item.id,
+        actorId: actor.id,
+      },
+    },
+    type: CONST.CHAT_MESSAGE_TYPES.OTHER,
+    speaker: ChatMessage.getSpeaker({ actor }),
+    flavor: "Cast a concentration spell",
+    content: html,
+  };
+
+  ChatMessage.create(messageData);
+}
+
+function onChatCardButton(event) {
+  debug("onChatCardButton method called");
+
+  // get chat message
+  const button = event.currentTarget;
+  const chatCard = $(button).closest("[data-message-id]");
+  const chatId = chatCard.data("messageId");
+  const chatMessage = game.messages.get(chatId);
+
+  // get actor and item
+  const actorId = chatMessage.getFlag("concentrator", "actorId");
+  const actor = game.actors.get(actorId);
+  const itemId = chatMessage.getFlag("concentrator", "itemId");
+  const item = actor.items.get(itemId);
+
+  addConcentration(item, actor);
 }
 
 /**
