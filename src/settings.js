@@ -33,4 +33,5 @@ export const registerSettings = function () {
 
 export const fetchSettings = function () {
   debugEnabled = game.settings.get("concentrator", "debugLogging");
+  addEffect = game.settings.get("concentrator", "addEffect");
 };

@@ -50,12 +50,12 @@ async function onRoll(wrapped, options, ...rest) {
     return wrapped(options, ...rest);
 
   // capture usages before casting the spell
-  const before = getUsages(item);
+  const before = getUsages(this);
 
   const result = await wrapped(options, ...rest);
   if (result) {
     // if usages changed then add concentration
-    const after = getUsages(item);
+    const after = getUsages(this);
     if (after.spellSlots < before.spellSlots || after.uses < before.uses)
       addConcentration(this, this.actor);
   }
