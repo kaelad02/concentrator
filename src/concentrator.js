@@ -28,11 +28,11 @@ Hooks.once("init", () => {
     html.on("click", ".concentrator .card-buttons button", onChatCardButton);
   Hooks.on("renderChatLog", chatListeners);
   Hooks.on("renderChatPopout", chatListeners);
-});
 
-// Add hooks to trigger concentration check
-Hooks.on("preUpdateActor", onPreUpdateActor);
-Hooks.on("updateActor", onUpdateActor);
+  // Add hooks to trigger concentration check
+  Hooks.on("preUpdateActor", onPreUpdateActor);
+  Hooks.on("updateActor", onUpdateActor);
+});
 
 async function onRoll(wrapped, options, ...rest) {
   debug("onRoll method called");
