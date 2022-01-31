@@ -1,3 +1,7 @@
+# 0.4
+
+- Fix for missing template file
+
 # 0.3
 
 - Fix for duplicate concentration checks
