@@ -19,8 +19,13 @@ Hooks.once("init", () => {
 });
 
 // Add hooks to trigger concentration check
-Hooks.on("preUpdateActor", onPreUpdateActor);
-Hooks.on("updateActor", onUpdateActor);
+Hooks.once("ready", () => {
+  Hooks.on("preUpdateActor", onPreUpdateActor);
+  // GM only so we don't get a check from each user
+  if (game.user.isGM) {
+    Hooks.on("updateActor", onUpdateActor);
+  }
+});
 
 /**
  * Wrapper for Item5e's displayCard method that detects when a spell w/ concentration is cast.
