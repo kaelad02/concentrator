@@ -17,6 +17,7 @@ Hooks.once("init", () => {
     "WRAPPER"
   );
 
+  // add hooks for the whispered message
   const chatListeners = (app, html, data) =>
     html.on("click", ".concentrator .card-buttons button", onChatCardButton);
   Hooks.on("renderChatLog", chatListeners);
