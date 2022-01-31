@@ -1,4 +1,4 @@
-import { registerSettings, fetchSettings } from "./settings.js";
+import { registerSettings, fetchSettings, addEffect } from "./settings.js";
 import { debug, isModuleActive, log } from "./util.js";
 import concentrationItem from "./fvtt-Item-concentration-check.js";
 
@@ -9,18 +9,78 @@ Hooks.once("init", () => {
   registerSettings();
   fetchSettings();
 
-  // Add wrapper to detect casting spells w/ concentration
+  // Add wrappers to detect casting spells w/ concentration
+  libWrapper.register(
+    "concentrator",
+    "CONFIG.Item.documentClass.prototype.roll",
+    onRoll,
+    "WRAPPER"
+  );
   libWrapper.register(
     "concentrator",
     "CONFIG.Item.documentClass.prototype.displayCard",
     onDisplayCard,
     "WRAPPER"
   );
+
+  // add hooks for the whispered message
+  const chatListeners = (app, html, data) =>
+    html.on("click", ".concentrator .card-buttons button", onChatCardButton);
+  Hooks.on("renderChatLog", chatListeners);
+  Hooks.on("renderChatPopout", chatListeners);
 });
 
 // Add hooks to trigger concentration check
 Hooks.on("preUpdateActor", onPreUpdateActor);
 Hooks.on("updateActor", onUpdateActor);
+
+async function onRoll(wrapped, options, ...rest) {
+  debug("onRoll method called");
+
+  // do not process if not configured for consume
+  if (addEffect !== "consumed") return wrapped(options, ...rest);
+
+  // do not processs if the item doesn't require concentration
+  if (!this.data.data.components?.concentration)
+    return wrapped(options, ...rest);
+
+  // capture usages before casting the spell
+  const before = getUsages(this);
+
+  const result = await wrapped(options, ...rest);
+  if (result) {
+    // if usages changed then add concentration
+    const after = getUsages(this);
+    if (after.spellSlots < before.spellSlots || after.uses < before.uses)
+      addConcentration(this, this.actor);
+  }
+
+  return result;
+}
+
+function getUsages(item) {
+  const id = item.data.data;
+  const ad = item.actor.data.data;
+
+  // check spell slots
+  let spellSlots = null;
+  const requireSpellSlot =
+    item.type === "spell" &&
+    id.level > 0 &&
+    CONFIG.DND5E.spellUpcastModes.includes(id.preparation.mode);
+  if (requireSpellSlot) {
+    spellSlots = Object.values(ad.spells)
+      .map((s) => s.value)
+      .reduce((accum, value) => accum + value, 0);
+  }
+
+  // check limited uses
+  const uses = !!id.uses?.per ? id.uses.value : null;
+
+  // TODO check resource consumption
+
+  return { spellSlots, uses };
+}
 
 /**
  * Wrapper for Item5e's displayCard method that detects when a spell w/ concentration is cast.
@@ -38,10 +98,56 @@ async function onDisplayCard(wrapped, options, ...rest) {
 
     const speaker = ChatMessage.getSpeakerActor(chatMessage.data?.speaker);
     debug(speaker);
-    addConcentration(this, speaker);
+    if (addEffect === "always") addConcentration(this, speaker);
+    else if (addEffect === "whisper") whisperMessage(this, speaker);
   }
 
   return chatMessage;
+}
+
+async function whisperMessage(item, actor) {
+  const html = await renderTemplate(
+    "modules/concentrator/templates/ask-to-add.hbs",
+    { item, actor }
+  );
+
+  const messageData = {
+    whisper: [game.userId],
+    user: game.userId,
+    flags: {
+      core: {
+        canPopout: true,
+      },
+      concentrator: {
+        itemId: item.id,
+        actorId: actor.id,
+      },
+    },
+    type: CONST.CHAT_MESSAGE_TYPES.OTHER,
+    speaker: ChatMessage.getSpeaker({ actor }),
+    flavor: "Cast a concentration spell",
+    content: html,
+  };
+
+  ChatMessage.create(messageData);
+}
+
+function onChatCardButton(event) {
+  debug("onChatCardButton method called");
+
+  // get chat message
+  const button = event.currentTarget;
+  const chatCard = $(button).closest("[data-message-id]");
+  const chatId = chatCard.data("messageId");
+  const chatMessage = game.messages.get(chatId);
+
+  // get actor and item
+  const actorId = chatMessage.getFlag("concentrator", "actorId");
+  const actor = game.actors.get(actorId);
+  const itemId = chatMessage.getFlag("concentrator", "itemId");
+  const item = actor.items.get(itemId);
+
+  addConcentration(item, actor);
 }
 
 /**
