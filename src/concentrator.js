@@ -1,4 +1,4 @@
-import { registerSettings, fetchSettings } from "./settings.js";
+import { registerSettings, fetchSettings, addEffect } from "./settings.js";
 import { debug, isModuleActive, log } from "./util.js";
 import concentrationItem from "./fvtt-Item-concentration-check.js";
 
@@ -41,6 +41,9 @@ Hooks.once("ready", () => {
 
 async function onRoll(wrapped, options, ...rest) {
   debug("onRoll method called");
+
+  // do not process if not configured for consume
+  if (addEffect !== "consumed") return wrapped(options, ...rest);
 
   // do not processs if the item doesn't require concentration
   if (!this.data.data.components?.concentration)
@@ -100,8 +103,8 @@ async function onDisplayCard(wrapped, options, ...rest) {
 
     const speaker = ChatMessage.getSpeakerActor(chatMessage.data?.speaker);
     debug(speaker);
-    //addConcentration(this, speaker);
-    whisperMessage(this, speaker);
+    if (addEffect === "always") addConcentration(this, speaker);
+    else if (addEffect === "whisper") whisperMessage(this, speaker);
   }
 
   return chatMessage;
