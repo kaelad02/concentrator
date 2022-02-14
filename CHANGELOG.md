@@ -1,3 +1,7 @@
+# 0.5
+
+- Fix for whisper mode with an unlinked token
+
 # 0.4
 
 - Fix for missing template file

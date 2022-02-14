@@ -119,8 +119,7 @@ async function whisperMessage(item, actor) {
         canPopout: true,
       },
       concentrator: {
-        itemId: item.id,
-        actorId: actor.id,
+        itemUuid: item.uuid,
       },
     },
     type: CONST.CHAT_MESSAGE_TYPES.OTHER,
@@ -132,7 +131,7 @@ async function whisperMessage(item, actor) {
   ChatMessage.create(messageData);
 }
 
-function onChatCardButton(event) {
+async function onChatCardButton(event) {
   debug("onChatCardButton method called");
 
   // get chat message
@@ -142,12 +141,10 @@ function onChatCardButton(event) {
   const chatMessage = game.messages.get(chatId);
 
   // get actor and item
-  const actorId = chatMessage.getFlag("concentrator", "actorId");
-  const actor = game.actors.get(actorId);
-  const itemId = chatMessage.getFlag("concentrator", "itemId");
-  const item = actor.items.get(itemId);
+  const itemUuid = chatMessage.getFlag("concentrator", "itemUuid");
+  const item = await fromUuid(itemUuid);
 
-  addConcentration(item, actor);
+  addConcentration(item, item.actor);
 }
 
 /**
