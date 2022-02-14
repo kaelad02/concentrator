@@ -32,7 +32,7 @@ Hooks.once("init", () => {
  * Wrapper for Item5e's displayCard method that detects when a spell w/ concentration is cast.
  */
 async function onDisplayCard(wrapped, options, ...rest) {
-  debug("onDisplayCard method called");
+  debug("onDisplayCard method called", this);
 
   const result = await wrapped(options, ...rest);
 
@@ -106,10 +106,15 @@ async function addConcentration(item, actor) {
   // copy over the item duration to the status effect using DAE
   if (isModuleActive("dae")) {
     const itemDuration = item.data.data.duration;
-    debug(`itemDuration ${itemDuration}`);
+    const inCombat = game.combat?.turns.some((combatant) =>
+      actor.token
+        ? combatant.token?.id === actor.token.id
+        : combatant.actor.id === actor.id
+    );
+    debug("itemDuration", itemDuration, `inCombat ${inCombat}`);
     const convertedDuration = globalThis.DAE.convertDuration(
       itemDuration,
-      false
+      inCombat
     );
     debug(`convertedDuration ${convertedDuration}`);
     if (convertedDuration?.type === "seconds") {

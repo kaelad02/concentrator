@@ -2,6 +2,7 @@
 
 - Fix for whisper mode with an unlinked token
 - Remove consumed resource option, too unreliable
+- Check if we're in combat when applying concentration when calculating duration
 
 # 0.4
 
