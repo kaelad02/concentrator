@@ -1,6 +1,7 @@
 # 0.5
 
 - Fix for whisper mode with an unlinked token
+- Remove consumed resource option, too unreliable
 
 # 0.4
 

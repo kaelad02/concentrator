@@ -21,7 +21,6 @@ export const registerSettings = function () {
     type: String,
     choices: {
       always: "Always",
-      consumed: "Consumed Resource",
       whisper: "Whisper Message",
     },
     default: "always",
