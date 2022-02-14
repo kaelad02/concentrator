@@ -1,3 +1,7 @@
+# 0.6
+
+- Fix for setting hint, remove the mention of resource consumption
+
 # 0.5
 
 - Fix for whisper mode with an unlinked token

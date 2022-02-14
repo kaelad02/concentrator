@@ -15,7 +15,7 @@ export const registerSettings = function () {
 
   game.settings.register("concentrator", "addEffect", {
     name: "When to apply Concentrating",
-    hint: "Always apply after casting a spell with concentration, only if it consumed a resource, or whisper a message to manually apply.",
+    hint: "Always apply after casting a spell with concentration or whisper a message to manually apply.",
     scope: "client",
     config: true,
     type: String,
