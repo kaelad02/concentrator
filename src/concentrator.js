@@ -133,6 +133,7 @@ async function addConcentration(item, actor) {
   }
 
   // enable effect
+  debug("creating active effect", statusEffect);
   return actor
     .createEmbeddedDocuments("ActiveEffect", [statusEffect])
     .then((documents) => {
