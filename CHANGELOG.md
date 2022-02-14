@@ -1,6 +1,7 @@
 # 0.6
 
 - Fix for setting hint, remove the mention of resource consumption
+- Add some missing awaits on adding concentration effect and check item card
 
 # 0.5
 

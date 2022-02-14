@@ -39,7 +39,7 @@ async function onDisplayCard(wrapped, options, ...rest) {
   // check if the item requires concentration
   if (this.data.data.components?.concentration) {
     debug("found a concentration spell");
-    if (addEffect === "always") addConcentration(this, this.actor);
+    if (addEffect === "always") await addConcentration(this, this.actor);
     else if (addEffect === "whisper") whisperMessage(this, this.actor);
   }
 
@@ -85,7 +85,7 @@ async function onChatCardButton(event) {
   const itemUuid = chatMessage.getFlag("concentrator", "itemUuid");
   const item = await fromUuid(itemUuid);
 
-  addConcentration(item, item.actor);
+  await addConcentration(item, item.actor);
 }
 
 /**
@@ -170,7 +170,7 @@ function onPreUpdateActor(actor, updateData, options, userId) {
  * @param {*} options
  * @param {string} userId
  */
-function onUpdateActor(actor, updateData, options, userId) {
+async function onUpdateActor(actor, updateData, options, userId) {
   debug("onUpdateActor called");
 
   // only perform check on the user who made the change
@@ -187,7 +187,7 @@ function onUpdateActor(actor, updateData, options, userId) {
     debug(`damage taken: ${damage}`);
     // make check
     if (damage > 0) {
-      concentrationCheck(damage, actor);
+      await concentrationCheck(damage, actor);
     }
   }
 }
