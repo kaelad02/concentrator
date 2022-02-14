@@ -34,21 +34,16 @@ Hooks.once("init", () => {
 async function onDisplayCard(wrapped, options, ...rest) {
   debug("onDisplayCard method called");
 
-  const chatMessage = await wrapped(options, ...rest);
-  debug(chatMessage);
-  debug(this);
+  const result = await wrapped(options, ...rest);
 
   // check if the item requires concentration
   if (this.data.data.components?.concentration) {
     debug(`concentration is true`);
-
-    const speaker = ChatMessage.getSpeakerActor(chatMessage.data?.speaker);
-    debug(speaker);
-    if (addEffect === "always") addConcentration(this, speaker);
-    else if (addEffect === "whisper") whisperMessage(this, speaker);
+    if (addEffect === "always") addConcentration(this, this.actor);
+    else if (addEffect === "whisper") whisperMessage(this, this.actor);
   }
 
-  return chatMessage;
+  return result;
 }
 
 async function whisperMessage(item, actor) {
