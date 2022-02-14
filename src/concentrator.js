@@ -38,7 +38,7 @@ async function onDisplayCard(wrapped, options, ...rest) {
 
   // check if the item requires concentration
   if (this.data.data.components?.concentration) {
-    debug(`concentration is true`);
+    debug("found a concentration spell");
     if (addEffect === "always") addConcentration(this, this.actor);
     else if (addEffect === "whisper") whisperMessage(this, this.actor);
   }
@@ -116,7 +116,7 @@ async function addConcentration(item, actor) {
       itemDuration,
       inCombat
     );
-    debug(`convertedDuration ${convertedDuration}`);
+    debug("convertedDuration", convertedDuration);
     if (convertedDuration?.type === "seconds") {
       statusEffect.duration = {
         seconds: convertedDuration.seconds,
@@ -149,8 +149,7 @@ async function addConcentration(item, actor) {
  */
 function onPreUpdateActor(actor, updateData, options, userId) {
   debug("onPreUpdateActor called");
-  debug(updateData);
-  debug(options);
+  debug("updateData", updateData, "options", options);
 
   // check if hp is modified
   if (
