@@ -177,7 +177,8 @@ async function onUpdateActor(actor, updateData, options, userId) {
   if (userId !== game.userId) return;
 
   // check for flag and concentrating
-  if (options.originalHpValue && isConcentrating(actor)) {
+  const effect = concentratingOn(actor);
+  if (options.originalHpValue && effect) {
     // compute damage taken
     const damage =
       options.originalHpTemp -
@@ -185,15 +186,19 @@ async function onUpdateActor(actor, updateData, options, userId) {
       options.originalHpValue -
       actor.data.data.attributes.hp.value;
     debug(`damage taken: ${damage}`);
+    // workaround https://gitlab.com/foundrynet/foundryvtt/-/issues/6702
+    effect.sourceName;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const sourceName = effect.sourceName;
     // make check
     if (damage > 0) {
-      await concentrationCheck(damage, actor);
+      await concentrationCheck(damage, actor, sourceName);
     }
   }
 }
 
-function isConcentrating(actor) {
-  return actor.data.effects?.some(
+function concentratingOn(actor) {
+  return actor.data.effects?.find(
     (effect) =>
       effect.data.flags.isConvenient && effect.data.label === EFFECT_NAME
   );
@@ -203,9 +208,10 @@ function isConcentrating(actor) {
  * Display an item card in chat for the concentration check.
  * @param {number} damage the damage taken
  * @param {Actor5e} actor who should make the check
+ * @param {string} sourceName the source of concentration
  * @returns {Promise<ChatMessage>} the chat message for the concentration item card
  */
-async function concentrationCheck(damage, actor) {
+async function concentrationCheck(damage, actor, sourceName) {
   log(`triggering a concentration check for ${actor?.name}`);
 
   // compute the save DC
@@ -222,5 +228,6 @@ async function concentrationCheck(damage, actor) {
   // display item card
   const chatData = await ownedItem.displayCard({ createMessage: false });
   chatData.flags["dnd5e.itemData"] = itemData;
+  if (sourceName !== "Unknown") chatData.flavor = sourceName;
   return ChatMessage.create(chatData);
 }
