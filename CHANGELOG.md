@@ -1,3 +1,7 @@
+# 0.7
+
+- Fix for concentrating with no source
+
 # 0.6
 
 - Fix for setting hint, remove the mention of resource consumption

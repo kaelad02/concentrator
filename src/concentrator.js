@@ -186,10 +186,7 @@ async function onUpdateActor(actor, updateData, options, userId) {
       options.originalHpValue -
       actor.data.data.attributes.hp.value;
     debug(`damage taken: ${damage}`);
-    // workaround https://gitlab.com/foundrynet/foundryvtt/-/issues/6702
-    effect.sourceName;
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    const sourceName = effect.sourceName;
+    const sourceName = await getSourceName(effect);
     // make check
     if (damage > 0) {
       await concentrationCheck(damage, actor, sourceName);
@@ -202,6 +199,16 @@ function concentratingOn(actor) {
     (effect) =>
       effect.data.flags.isConvenient && effect.data.label === EFFECT_NAME
   );
+}
+
+async function getSourceName(effect) {
+  // workaround https://gitlab.com/foundrynet/foundryvtt/-/issues/6702
+  effect.sourceName;
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
+  const sourceName = effect.sourceName;
+  if (sourceName === "None" || sourceName === "Unknown") return undefined;
+  return sourceName;
 }
 
 /**
@@ -228,6 +235,6 @@ async function concentrationCheck(damage, actor, sourceName) {
   // display item card
   const chatData = await ownedItem.displayCard({ createMessage: false });
   chatData.flags["dnd5e.itemData"] = itemData;
-  if (sourceName !== "Unknown") chatData.flavor = sourceName;
+  if (sourceName) chatData.flavor = sourceName;
   return ChatMessage.create(chatData);
 }
