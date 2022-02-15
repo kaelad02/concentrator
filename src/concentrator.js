@@ -186,9 +186,9 @@ async function onUpdateActor(actor, updateData, options, userId) {
       options.originalHpValue -
       actor.data.data.attributes.hp.value;
     debug(`damage taken: ${damage}`);
-    const sourceName = await getSourceName(effect);
     // make check
     if (damage > 0) {
+      const sourceName = await getSourceName(effect);
       await concentrationCheck(damage, actor, sourceName);
     }
   }
