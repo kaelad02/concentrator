@@ -228,6 +228,7 @@ async function concentrationCheck(damage, actor, sourceName) {
   // create a Concentration Check item
   const itemData = duplicate(concentrationItem);
   itemData.data.save.dc = saveDC;
+  itemData.data.chatFlavor = sourceName;
 
   const ownedItem = new CONFIG.Item.documentClass(itemData, { parent: actor });
   ownedItem.getSaveDC();
@@ -235,6 +236,5 @@ async function concentrationCheck(damage, actor, sourceName) {
   // display item card
   const chatData = await ownedItem.displayCard({ createMessage: false });
   chatData.flags["dnd5e.itemData"] = itemData;
-  if (sourceName) chatData.flavor = sourceName;
   return ChatMessage.create(chatData);
 }
