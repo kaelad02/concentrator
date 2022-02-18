@@ -40,7 +40,7 @@ async function onDisplayCard(wrapped, options, ...rest) {
   if (this.data.data.components?.concentration) {
     debug("found a concentration spell");
     if (addEffect === "always") await addConcentration(this, this.actor);
-    else if (addEffect === "whisper") whisperMessage(this, this.actor);
+    else if (addEffect === "whisper") await whisperMessage(this, this.actor);
   }
 
   return result;
@@ -69,7 +69,7 @@ async function whisperMessage(item, actor) {
     content: html,
   };
 
-  ChatMessage.create(messageData);
+  return ChatMessage.create(messageData);
 }
 
 async function onChatCardButton(event) {

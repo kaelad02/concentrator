@@ -1,6 +1,7 @@
 # 0.7
 
 - Fix for concentrating with no source
+- Add missing await when whispering message to apply concentration
 
 # 0.6
 
