@@ -2,6 +2,7 @@
 
 - Fix for concentrating with no source
 - Add missing await when whispering message to apply concentration
+- Set compatible verion to v9
 
 # 0.6
 
