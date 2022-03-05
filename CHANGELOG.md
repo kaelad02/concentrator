@@ -1,3 +1,7 @@
+# 0.8
+
+- Update to latest Convenient Effects interface to fix missing source
+
 # 0.7
 
 - Fix for concentrating with no source

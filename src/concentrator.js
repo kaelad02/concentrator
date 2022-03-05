@@ -98,10 +98,8 @@ async function addConcentration(item, actor) {
   log(`will add concentration to ${actor?.name}`);
 
   // find the DFreds Convenient Effect version of Concentrating
-  let statusEffect = game.dfreds.effects.all.find(
-    (effect) => effect.name === EFFECT_NAME
-  );
-  statusEffect = statusEffect.convertToActiveEffectData(item.uuid);
+  let statusEffect = game.dfreds.effectInterface.findEffectByName(EFFECT_NAME);
+  statusEffect = statusEffect.convertToActiveEffectData({ origin: item.uuid });
 
   // copy over the item duration to the status effect using DAE
   if (isModuleActive("dae")) {
