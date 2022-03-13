@@ -1,3 +1,7 @@
+# 0.9
+
+- change how the Concentration Check item is made
+
 # 0.8
 
 - Update to latest Convenient Effects interface to fix missing source

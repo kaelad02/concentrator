@@ -1,6 +1,5 @@
 import { registerSettings, fetchSettings, addEffect } from "./settings.js";
 import { debug, isModuleActive, log } from "./util.js";
-import concentrationItem from "./fvtt-Item-concentration-check.js";
 
 const EFFECT_NAME = "Concentrating";
 
@@ -224,11 +223,25 @@ async function concentrationCheck(damage, actor, sourceName) {
   debug(`computed saveDC ${saveDC}`);
 
   // create a Concentration Check item
-  const itemData = duplicate(concentrationItem);
-  itemData.data.save.dc = saveDC;
-  itemData.data.chatFlavor = sourceName;
+  const itemData = {
+    data: {
+      actionType: "save",
+      chatFlavor: sourceName,
+      save: {
+        ability: "con",
+        dc: saveDC,
+        scaling: "flat",
+      },
+    },
+    img: "modules/concentrator/img/concentrating.svg",
+    name: "Concentration Check",
+    type: "feat",
+  };
 
-  const ownedItem = new CONFIG.Item.documentClass(itemData, { parent: actor });
+  const ownedItem = await CONFIG.Item.documentClass.create(itemData, {
+    parent: actor,
+    temporary: true,
+  });
   ownedItem.getSaveDC();
 
   // display item card
