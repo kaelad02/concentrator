@@ -194,7 +194,10 @@ async function onUpdateActor(actor, updateData, options, userId) {
 function concentratingOn(actor) {
   return actor.data.effects?.find(
     (effect) =>
-      effect.data.flags.isConvenient && effect.data.label === EFFECT_NAME
+      effect.data.flags.isConvenient &&
+      effect.data.label === EFFECT_NAME &&
+      !effect.isSuppressed &&
+      !effect.data.disabled
   );
 }
 

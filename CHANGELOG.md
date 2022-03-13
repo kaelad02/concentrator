@@ -1,6 +1,7 @@
 # 0.9
 
-- change how the Concentration Check item is made
+- Fix a bug that would trigger a concentration check when Concentrating was inactive
+- Change how the Concentration Check item is made
 
 # 0.8
 
