@@ -1,6 +1,6 @@
 export var addEffect;
 
-export const registerSettings = function () {
+export const initSettings = function () {
   game.settings.register("concentrator", "addEffect", {
     name: "When to apply Concentrating",
     hint: "Always apply after casting a spell with concentration or whisper a message to manually apply.",
@@ -16,8 +16,6 @@ export const registerSettings = function () {
       addEffect = value;
     },
   });
-};
 
-export const fetchSettings = function () {
   addEffect = game.settings.get("concentrator", "addEffect");
 };

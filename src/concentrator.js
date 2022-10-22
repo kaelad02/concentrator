@@ -1,25 +1,20 @@
-import { registerSettings, fetchSettings, addEffect } from "./settings.js";
+import { initSettings, addEffect } from "./settings.js";
 import { debug, isModuleActive, log } from "./util.js";
 
 const EFFECT_NAME = "Concentrating";
 
+/**
+ * Initialize the module.
+ */
 Hooks.once("init", () => {
   log("initializing Concentrator");
-  registerSettings();
-  fetchSettings();
-
-  // Add hook to detect casting spells w/ concentration
-  Hooks.on("dnd5e.useItem", onUseItem);
+  initSettings();
 
   // add hooks for the whispered message
   const chatListeners = (app, html, data) =>
     html.on("click", ".concentrator .card-buttons button", onChatCardButton);
   Hooks.on("renderChatLog", chatListeners);
   Hooks.on("renderChatPopout", chatListeners);
-
-  // Add hooks to trigger concentration check
-  Hooks.on("preUpdateActor", onPreUpdateActor);
-  Hooks.on("updateActor", onUpdateActor);
 });
 
 Hooks.once("devModeReady", ({ registerPackageDebugFlag }) =>
@@ -29,7 +24,7 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) =>
 /**
  * Hook when an item is used that detects when a spell w/ concentration is cast.
  */
-function onUseItem(item, config, options, templates) {
+ Hooks.on("dnd5e.useItem", (item, config, options, templates) => {
   debug("onUseItem method called", item);
 
   // check if the item requires concentration
@@ -38,7 +33,7 @@ function onUseItem(item, config, options, templates) {
     if (addEffect === "always") addConcentration(item, item.actor);
     else if (addEffect === "whisper") whisperMessage(item, item.actor);
   }
-}
+});
 
 async function whisperMessage(item, actor) {
   const html = await renderTemplate(
@@ -134,13 +129,9 @@ async function addConcentration(item, actor) {
 }
 
 /**
- * Event handler for preUpdateActor hook.
- * @param {Actor5e} actor
- * @param {*} updateData
- * @param {*} options
- * @param {string} userId
+ * In the preUpdateActor hook, save the original HP values.
  */
-function onPreUpdateActor(actor, updateData, options, userId) {
+Hooks.on("preUpdateActor", (actor, updateData, options, userId) => {
   debug("onPreUpdateActor called");
   debug("updateData", updateData, "options", options);
 
@@ -153,16 +144,12 @@ function onPreUpdateActor(actor, updateData, options, userId) {
     options.originalHpTemp = actor.system.attributes.hp.temp;
     options.originalHpValue = actor.system.attributes.hp.value;
   }
-}
+});
 
 /**
- * Event handler for updateActor hook.
- * @param {Actor5e} actor
- * @param {*} updateData
- * @param {*} options
- * @param {string} userId
+ * In the updateActor hook, trigger a concentration check.
  */
-async function onUpdateActor(actor, updateData, options, userId) {
+Hooks.on("updateActor", async (actor, updateData, options, userId) => {
   debug("onUpdateActor called");
 
   // only perform check on the user who made the change
@@ -184,7 +171,7 @@ async function onUpdateActor(actor, updateData, options, userId) {
       await concentrationCheck(damage, actor, sourceName);
     }
   }
-}
+});
 
 function concentratingOn(actor) {
   return actor.effects?.find(
