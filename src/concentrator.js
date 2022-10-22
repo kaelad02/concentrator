@@ -33,7 +33,7 @@ function onUseItem(item, config, options, templates) {
   debug("onUseItem method called", item);
 
   // check if the item requires concentration
-  if (item.data.data.components?.concentration) {
+  if (item.system.components?.concentration) {
     debug("found a concentration spell");
     if (addEffect === "always") addConcentration(item, item.actor);
     else if (addEffect === "whisper") whisperMessage(item, item.actor);
@@ -97,7 +97,7 @@ async function addConcentration(item, actor) {
 
   // copy over the item duration to the status effect using DAE
   if (isModuleActive("dae")) {
-    const itemDuration = item.data.data.duration;
+    const itemDuration = item.system.duration;
     const inCombat = game.combat?.turns.some((combatant) =>
       actor.token
         ? combatant.token?.id === actor.token.id
@@ -146,12 +146,12 @@ function onPreUpdateActor(actor, updateData, options, userId) {
 
   // check if hp is modified
   if (
-    updateData.data?.attributes?.hp?.temp ||
-    updateData.data?.attributes?.hp?.value
+    updateData.system?.attributes?.hp?.temp ||
+    updateData.system?.attributes?.hp?.value
   ) {
     // save current hp value to calculate actual change later
-    options.originalHpTemp = actor.data.data.attributes.hp.temp;
-    options.originalHpValue = actor.data.data.attributes.hp.value;
+    options.originalHpTemp = actor.system.attributes.hp.temp;
+    options.originalHpValue = actor.system.attributes.hp.value;
   }
 }
 
@@ -174,9 +174,9 @@ async function onUpdateActor(actor, updateData, options, userId) {
     // compute damage taken
     const damage =
       options.originalHpTemp -
-      actor.data.data.attributes.hp.temp +
+      actor.system.attributes.hp.temp +
       options.originalHpValue -
-      actor.data.data.attributes.hp.value;
+      actor.system.attributes.hp.value;
     debug(`damage taken: ${damage}`);
     // make check
     if (damage > 0) {
@@ -187,12 +187,12 @@ async function onUpdateActor(actor, updateData, options, userId) {
 }
 
 function concentratingOn(actor) {
-  return actor.data.effects?.find(
+  return actor.effects?.find(
     (effect) =>
-      effect.data.flags.isConvenient &&
-      effect.data.label === EFFECT_NAME &&
+      effect.flags.isConvenient &&
+      effect.label === EFFECT_NAME &&
       !effect.isSuppressed &&
-      !effect.data.disabled
+      !effect.disabled
   );
 }
 
@@ -222,7 +222,7 @@ async function concentrationCheck(damage, actor, sourceName) {
 
   // create a Concentration Check item
   const itemData = {
-    data: {
+    system: {
       actionType: "save",
       chatFlavor: sourceName,
       save: {
