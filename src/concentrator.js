@@ -35,8 +35,8 @@ function onUseItem(item, config, options, templates) {
   // check if the item requires concentration
   if (item.data.data.components?.concentration) {
     debug("found a concentration spell");
-    if (addEffect === "always") addConcentration(this, this.actor);
-    else if (addEffect === "whisper") whisperMessage(this, this.actor);
+    if (addEffect === "always") addConcentration(item, item.actor);
+    else if (addEffect === "whisper") whisperMessage(item, item.actor);
   }
 }
 
