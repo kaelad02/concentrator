@@ -8,13 +8,8 @@ Hooks.once("init", () => {
   registerSettings();
   fetchSettings();
 
-  // Add wrapper to detect casting spells w/ concentration
-  libWrapper.register(
-    "concentrator",
-    "CONFIG.Item.documentClass.prototype.displayCard",
-    onDisplayCard,
-    "WRAPPER"
-  );
+  // Add hook to detect casting spells w/ concentration
+  Hooks.on("dnd5e.useItem", onUseItem);
 
   // add hooks for the whispered message
   const chatListeners = (app, html, data) =>
@@ -32,21 +27,17 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) =>
 );
 
 /**
- * Wrapper for Item5e's displayCard method that detects when a spell w/ concentration is cast.
+ * Hook when an item is used that detects when a spell w/ concentration is cast.
  */
-async function onDisplayCard(wrapped, options, ...rest) {
-  debug("onDisplayCard method called", this);
-
-  const result = await wrapped(options, ...rest);
+function onUseItem(item, config, options, templates) {
+  debug("onUseItem method called", item);
 
   // check if the item requires concentration
-  if (this.data.data.components?.concentration) {
+  if (item.data.data.components?.concentration) {
     debug("found a concentration spell");
-    if (addEffect === "always") await addConcentration(this, this.actor);
-    else if (addEffect === "whisper") await whisperMessage(this, this.actor);
+    if (addEffect === "always") addConcentration(this, this.actor);
+    else if (addEffect === "whisper") whisperMessage(this, this.actor);
   }
-
-  return result;
 }
 
 async function whisperMessage(item, actor) {
