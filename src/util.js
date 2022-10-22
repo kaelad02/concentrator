@@ -1,7 +1,11 @@
-import { debugEnabled } from "./settings.js";
+function debugEnabled() {
+  return game.modules.get("_dev-mode")?.api?.getPackageDebugValue("concentrator");
+}
 
 export const debug = (...args) => {
-  if (debugEnabled) console.log("concentrator | ", ...args);
+  try {
+    if (debugEnabled()) log(...args);
+  } catch (e) {}
 };
 
 export const log = (...args) => console.log("concentrator | ", ...args);

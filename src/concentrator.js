@@ -27,6 +27,10 @@ Hooks.once("init", () => {
   Hooks.on("updateActor", onUpdateActor);
 });
 
+Hooks.once("devModeReady", ({ registerPackageDebugFlag }) =>
+  registerPackageDebugFlag("concentrator")
+);
+
 /**
  * Wrapper for Item5e's displayCard method that detects when a spell w/ concentration is cast.
  */
