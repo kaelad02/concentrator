@@ -27,7 +27,7 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) =>
 /**
  * Hook when an item is used that detects when a spell w/ concentration is cast.
  */
- Hooks.on("dnd5e.useItem", (item, config, options, templates) => {
+Hooks.on("dnd5e.useItem", (item, config, options, templates) => {
   debug("dnd5e.useItem hook called", item);
 
   // check if the item requires concentration
@@ -39,10 +39,10 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) =>
 });
 
 async function whisperMessage(item, actor) {
-  const html = await renderTemplate(
-    "modules/concentrator/templates/ask-to-add.hbs",
-    { item, actor }
-  );
+  const html = await renderTemplate("modules/concentrator/templates/ask-to-add.hbs", {
+    item,
+    actor,
+  });
 
   const messageData = {
     whisper: [game.userId],
@@ -97,15 +97,10 @@ async function addConcentration(item, actor) {
   if (isModuleActive("dae")) {
     const itemDuration = item.system.duration;
     const inCombat = game.combat?.turns.some((combatant) =>
-      actor.token
-        ? combatant.token?.id === actor.token.id
-        : combatant.actor.id === actor.id
+      actor.token ? combatant.token?.id === actor.token.id : combatant.actor.id === actor.id
     );
     debug("itemDuration", itemDuration, `inCombat ${inCombat}`);
-    const convertedDuration = globalThis.DAE.convertDuration(
-      itemDuration,
-      inCombat
-    );
+    const convertedDuration = globalThis.DAE.convertDuration(itemDuration, inCombat);
     debug("convertedDuration", convertedDuration);
     if (convertedDuration?.type === "seconds") {
       statusEffect.duration = {
@@ -124,11 +119,9 @@ async function addConcentration(item, actor) {
 
   // enable effect
   debug("creating active effect", statusEffect);
-  return actor
-    .createEmbeddedDocuments("ActiveEffect", [statusEffect])
-    .then((documents) => {
-      return documents.length > 0;
-    });
+  return actor.createEmbeddedDocuments("ActiveEffect", [statusEffect]).then((documents) => {
+    return documents.length > 0;
+  });
 }
 
 /**
@@ -139,10 +132,7 @@ Hooks.on("preUpdateActor", (actor, updateData, options, userId) => {
   debug("updateData", updateData, "options", options);
 
   // check if hp is modified
-  if (
-    updateData.system?.attributes?.hp?.temp ||
-    updateData.system?.attributes?.hp?.value
-  ) {
+  if (updateData.system?.attributes?.hp?.temp || updateData.system?.attributes?.hp?.value) {
     // save current hp value to calculate actual change later
     options.originalHpTemp = actor.system.attributes.hp.temp;
     options.originalHpValue = actor.system.attributes.hp.value;
