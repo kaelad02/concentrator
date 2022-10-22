@@ -17,6 +17,9 @@ Hooks.once("init", () => {
   Hooks.on("renderChatPopout", chatListeners);
 });
 
+/**
+ * Register with Developer Mode for a debug flag.
+ */
 Hooks.once("devModeReady", ({ registerPackageDebugFlag }) =>
   registerPackageDebugFlag("concentrator")
 );
@@ -25,7 +28,7 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) =>
  * Hook when an item is used that detects when a spell w/ concentration is cast.
  */
  Hooks.on("dnd5e.useItem", (item, config, options, templates) => {
-  debug("onUseItem method called", item);
+  debug("dnd5e.useItem hook called", item);
 
   // check if the item requires concentration
   if (item.system.components?.concentration) {
@@ -132,7 +135,7 @@ async function addConcentration(item, actor) {
  * In the preUpdateActor hook, save the original HP values.
  */
 Hooks.on("preUpdateActor", (actor, updateData, options, userId) => {
-  debug("onPreUpdateActor called");
+  debug("preUpdateActor hook called");
   debug("updateData", updateData, "options", options);
 
   // check if hp is modified
@@ -150,7 +153,7 @@ Hooks.on("preUpdateActor", (actor, updateData, options, userId) => {
  * In the updateActor hook, trigger a concentration check.
  */
 Hooks.on("updateActor", async (actor, updateData, options, userId) => {
-  debug("onUpdateActor called");
+  debug("updateActor hook called");
 
   // only perform check on the user who made the change
   if (userId !== game.userId) return;
