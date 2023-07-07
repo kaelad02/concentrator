@@ -91,37 +91,43 @@ async function addConcentration(item, actor) {
 
   // find the DFreds Convenient Effect version of Concentrating
   let statusEffect = game.dfreds.effectInterface.findEffectByName(EFFECT_NAME);
-  statusEffect = statusEffect.convertToActiveEffectData({ origin: item.uuid });
 
-  // copy over the item duration to the status effect using DAE
-  if (isModuleActive("dae")) {
-    const itemDuration = item.system.duration;
-    const inCombat = game.combat?.turns.some((combatant) =>
-      actor.token ? combatant.token?.id === actor.token.id : combatant.actor.id === actor.id
-    );
-    debug("itemDuration", itemDuration, `inCombat ${inCombat}`);
-    const convertedDuration = globalThis.DAE.convertDuration(itemDuration, inCombat);
-    debug("convertedDuration", convertedDuration);
-    if (convertedDuration?.type === "seconds") {
-      statusEffect.duration = {
-        seconds: convertedDuration.seconds,
-        startTime: game.time.worldTime,
-      };
-    } else if (convertedDuration?.type === "turns") {
-      statusEffect.duration = {
-        rounds: convertedDuration.rounds,
-        turns: convertedDuration.turns,
-        startRound: game.combat?.round,
-        startTurn: game.combat?.turn,
-      };
-    }
-  }
+  // clone the effect and set origin and duration
+  const duration = getItemDuration(item);
+  statusEffect = statusEffect.clone({ origin: item.uuid, duration });
 
   // enable effect
   debug("creating active effect", statusEffect);
   return actor.createEmbeddedDocuments("ActiveEffect", [statusEffect]).then((documents) => {
     return documents.length > 0;
   });
+}
+
+/**
+ * Get the duration for an active effect based on the item.
+ * @param {Item5e} item The item (spell) that triggered concentration
+ * @returns {object} the duration for an active effect
+ */
+function getItemDuration(item) {
+  const duration = item.system.duration;
+
+  if (!duration?.value) return {};
+  const { value, units } = duration;
+
+  switch (units) {
+    case "turn":
+      return { turns: value };
+    case "round":
+      return { rounds: value };
+    case "minute":
+      return { seconds: value * 60 };
+    case "hour":
+      return { seconds: value * 60 * 60 };
+    case "day":
+      return { seconds: value * 60 * 60 * 24 };
+    default:
+      return {};
+  }
 }
 
 /**
