@@ -1,5 +1,5 @@
 import { initSettings, addEffect } from "./settings.js";
-import { debug, isModuleActive, log } from "./util.js";
+import { debug, log } from "./util.js";
 
 const EFFECT_NAME = "Concentrating";
 

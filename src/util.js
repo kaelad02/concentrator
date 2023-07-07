@@ -9,5 +9,3 @@ export const debug = (...args) => {
 };
 
 export const log = (...args) => console.log("concentrator | ", ...args);
-
-export const isModuleActive = (name) => game.modules.get(name)?.active;
