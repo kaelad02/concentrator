@@ -1,3 +1,10 @@
+# 1.0
+
+- update manifest file for v10
+- make DataModel changes (e.g. `data.data` => `system`) for v10
+- use the Developer Mode module for debug logging
+- remove dependency on libWrapper and use new dnd5e hooks instead
+
 # 0.9
 
 - Fix a bug that would trigger a concentration check when Concentrating was inactive
