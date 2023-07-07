@@ -1,3 +1,7 @@
+# 1.1
+
+- remove whisper option, wasn't being used
+
 # 1.0
 
 - update manifest file for v10

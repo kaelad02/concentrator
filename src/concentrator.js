@@ -1,4 +1,4 @@
-import { initSettings, addEffect } from "./settings.js";
+import { initSettings } from "./settings.js";
 import { debug, log } from "./util.js";
 
 const EFFECT_NAME = "Concentrating";
@@ -9,12 +9,6 @@ const EFFECT_NAME = "Concentrating";
 Hooks.once("init", () => {
   log("initializing Concentrator");
   initSettings();
-
-  // add hooks for the whispered message
-  const chatListeners = (app, html, data) =>
-    html.on("click", ".concentrator .card-buttons button", onChatCardButton);
-  Hooks.on("renderChatLog", chatListeners);
-  Hooks.on("renderChatPopout", chatListeners);
 });
 
 /**
@@ -33,52 +27,9 @@ Hooks.on("dnd5e.useItem", (item, config, options, templates) => {
   // check if the item requires concentration
   if (item.system.components?.concentration) {
     debug("found a concentration spell");
-    if (addEffect === "always") addConcentration(item, item.actor);
-    else if (addEffect === "whisper") whisperMessage(item, item.actor);
+    addConcentration(item, item.actor);
   }
 });
-
-async function whisperMessage(item, actor) {
-  const html = await renderTemplate("modules/concentrator/templates/ask-to-add.hbs", {
-    item,
-    actor,
-  });
-
-  const messageData = {
-    whisper: [game.userId],
-    user: game.userId,
-    flags: {
-      core: {
-        canPopout: true,
-      },
-      concentrator: {
-        itemUuid: item.uuid,
-      },
-    },
-    type: CONST.CHAT_MESSAGE_TYPES.OTHER,
-    speaker: ChatMessage.getSpeaker({ actor }),
-    flavor: "Cast a concentration spell",
-    content: html,
-  };
-
-  return ChatMessage.create(messageData);
-}
-
-async function onChatCardButton(event) {
-  debug("onChatCardButton method called");
-
-  // get chat message
-  const button = event.currentTarget;
-  const chatCard = $(button).closest("[data-message-id]");
-  const chatId = chatCard.data("messageId");
-  const chatMessage = game.messages.get(chatId);
-
-  // get actor and item
-  const itemUuid = chatMessage.getFlag("concentrator", "itemUuid");
-  const item = await fromUuid(itemUuid);
-
-  await addConcentration(item, item.actor);
-}
 
 /**
  * Add concentration to an actor.
