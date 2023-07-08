@@ -202,7 +202,7 @@ async function onButtonClick(event) {
 
   // Handle different actions
   switch (button.dataset.action) {
-    case "save":
+    case "concentration":
       const speaker = ChatMessage.getSpeaker({ scene: canvas.scene, token: actor.token });
       // TODO: use Midi flags for adv/dis and bonuses
       await actor.rollAbilitySave(button.dataset.ability, { event, speaker });
