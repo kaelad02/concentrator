@@ -1,5 +1,6 @@
 # 1.1
 
+- Fix for not triggering concentration checks since a CE flag was moved
 - remove whisper option, wasn't being used
 
 # 1.0

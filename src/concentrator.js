@@ -124,13 +124,7 @@ Hooks.on("updateActor", async (actor, updateData, options, userId) => {
 });
 
 function concentratingOn(actor) {
-  return actor.effects?.find(
-    (effect) =>
-      effect.flags.isConvenient &&
-      effect.label === EFFECT_NAME &&
-      !effect.isSuppressed &&
-      !effect.disabled
-  );
+  return actor.effects?.find((e) => e.label === EFFECT_NAME && !e.isSuppressed && !e.disabled);
 }
 
 async function getSourceName(effect) {
