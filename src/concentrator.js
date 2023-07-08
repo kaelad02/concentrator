@@ -125,7 +125,7 @@ Hooks.on("updateActor", async (actor, updateData, options, userId) => {
     // make check
     if (damage > 0) {
       const sourceName = await getSourceName(effect);
-      await concentrationCheck(damage, actor, sourceName);
+      await concentrationCheck(damage, actor, sourceName, effect.id);
     }
   }
 });
@@ -149,9 +149,10 @@ async function getSourceName(effect) {
  * @param {number} damage the damage taken
  * @param {Actor5e} actor who should make the check
  * @param {string} sourceName the source of concentration
+ * @param {string} effectId the concentration effect's ID
  * @returns {Promise<ChatMessage>} the chat message for the concentration item card
  */
-async function concentrationCheck(damage, actor, sourceName) {
+async function concentrationCheck(damage, actor, sourceName, effectId) {
   log(`triggering a concentration check for ${actor?.name}`);
 
   // compute the save DC
@@ -168,6 +169,7 @@ async function concentrationCheck(damage, actor, sourceName) {
     ability,
     abilityLabel: CONFIG.DND5E.abilities[ability]?.label ?? CONFIG.DND5E.abilities[ability] ?? "",
     saveDC,
+    effectId,
   };
   const html = await renderTemplate("modules/concentrator/templates/chat-card.hbs", templateData);
 
@@ -203,9 +205,12 @@ async function onButtonClick(event) {
     case "save":
       const speaker = ChatMessage.getSpeaker({ scene: canvas.scene, token: actor.token });
       // TODO: use Midi flags for adv/dis and bonuses
-      actor.rollAbilitySave(button.dataset.ability, { event, speaker });
+      await actor.rollAbilitySave(button.dataset.ability, { event, speaker });
       break;
-    // TODO: add action to remove concentration active effect
+    case "removeEffect":
+      const effect = actor.effects.get(button.dataset.effectId);
+      if (effect) await effect.delete();
+      break;
   }
 
   // Re-enable the button

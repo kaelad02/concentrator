@@ -13,6 +13,8 @@
         <button data-action="save" data-ability="{{ability}}">
             {{ localize "DND5E.SavingThrow" }} {{ localize "DND5E.SaveDC" dc=saveDC ability=abilityLabel }}
         </button>
+
+        <button data-action="removeEffect" data-effect-id="{{effectId}}">Remove Concentration Effect</button>
     </div>
 
     {{!-- TODO: add button to remove active effect --}}
