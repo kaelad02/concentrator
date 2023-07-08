@@ -1,3 +1,7 @@
+# 1.1
+
+- Fix for not triggering concentration checks since a CE flag was moved
+
 # 1.0
 
 - update manifest file for v10
