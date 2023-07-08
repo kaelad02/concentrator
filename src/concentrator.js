@@ -12,6 +12,13 @@ Hooks.once("init", () => {
 });
 
 /**
+ * Register a click listener for the concentration chat card buttons.
+ */
+Hooks.on("renderChatLog", (app, html, data) =>
+  html.on("click", ".custom-card-buttons button", onButtonClick)
+);
+
+/**
  * Register with Developer Mode for a debug flag.
  */
 Hooks.once("devModeReady", ({ registerPackageDebugFlag }) =>
@@ -173,4 +180,34 @@ async function concentrationCheck(damage, actor, sourceName) {
     speaker: ChatMessage.getSpeaker({ actor, token }),
   };
   return ChatMessage.create(chatData);
+}
+
+async function onButtonClick(event) {
+  event.preventDefault();
+  debug("onButtonClick called");
+
+  // Extract card data
+  const button = event.currentTarget;
+  button.disabled = true;
+  const card = button.closest(".chat-card");
+
+  // Recover the actor for the chat card
+  const actor = await dnd5e.documents.Item5e._getChatCardActor(card);
+  if (!actor) return;
+
+  // Validate permission to proceed with the roll
+  if (!actor.isOwner) return;
+
+  // Handle different actions
+  switch (button.dataset.action) {
+    case "save":
+      const speaker = ChatMessage.getSpeaker({ scene: canvas.scene, token: actor.token });
+      // TODO: use Midi flags for adv/dis and bonuses
+      actor.rollAbilitySave(button.dataset.ability, { event, speaker });
+      break;
+    // TODO: add action to remove concentration active effect
+  }
+
+  // Re-enable the button
+  button.disabled = false;
 }
