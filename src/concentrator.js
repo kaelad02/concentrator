@@ -151,30 +151,26 @@ async function concentrationCheck(damage, actor, sourceName) {
   const saveDC = Math.max(10, Math.floor(damage / 2));
   debug(`computed saveDC ${saveDC}`);
 
-  // create a Concentration Check item
-  const itemData = {
-    system: {
-      actionType: "save",
-      chatFlavor: sourceName,
-      save: {
-        ability: "con",
-        dc: saveDC,
-        scaling: "flat",
-      },
-    },
-    img: "modules/concentrator/img/concentrating.svg",
-    name: "Concentration Check",
-    type: "feat",
+  // Render the chat card template
+  const token = actor.token;
+  const ability = "con";
+  const templateData = {
+    actorId: actor.id,
+    tokenId: token?.uuid || null,
+    description: `Took ${damage} damage, so you must make a concentration check.`,
+    ability,
+    abilityLabel: CONFIG.DND5E.abilities[ability]?.label ?? CONFIG.DND5E.abilities[ability] ?? "",
+    saveDC,
   };
+  const html = await renderTemplate("modules/concentrator/templates/chat-card.hbs", templateData);
 
-  const ownedItem = await CONFIG.Item.documentClass.create(itemData, {
-    parent: actor,
-    temporary: true,
-  });
-  ownedItem.getSaveDC();
-
-  // display item card
-  const chatData = await ownedItem.displayCard({ createMessage: false });
-  chatData.flags["dnd5e.itemData"] = itemData;
+  // Create the ChatMessage
+  const chatData = {
+    user: game.user.id,
+    type: CONST.CHAT_MESSAGE_TYPES.OTHER,
+    content: html,
+    flavor: sourceName,
+    speaker: ChatMessage.getSpeaker({ actor, token }),
+  };
   return ChatMessage.create(chatData);
 }
