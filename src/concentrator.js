@@ -198,6 +198,10 @@ async function concentrationCheck(damage, actor, sourceName, effectId) {
   return ChatMessage.create(chatData);
 }
 
+/**
+ * The click handler for the concentration card buttons.
+ * @param {Event} event the event
+ */
 async function onButtonClick(event) {
   event.preventDefault();
   debug("onButtonClick called");
