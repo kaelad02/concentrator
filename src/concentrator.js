@@ -70,9 +70,7 @@ async function addConcentration(item, actor) {
 
   // enable effect
   debug("creating active effect", statusEffect);
-  return actor.createEmbeddedDocuments("ActiveEffect", [statusEffect]).then((documents) => {
-    return documents.length > 0;
-  });
+  actor.createEmbeddedDocuments("ActiveEffect", [statusEffect]);
 }
 
 /**
@@ -127,7 +125,9 @@ Hooks.on("updateActor", async (actor, updateData, options, userId) => {
   if (userId !== game.userId) return;
 
   // check for flag and concentrating
-  const effect = concentratingOn(actor);
+  const effect = actor.effects?.find(
+    (e) => e.label === EFFECT_NAME && !e.isSuppressed && !e.disabled
+  );
   if (options.originalHpValue && effect) {
     // compute damage taken
     const damage =
@@ -144,18 +144,13 @@ Hooks.on("updateActor", async (actor, updateData, options, userId) => {
   }
 });
 
-function concentratingOn(actor) {
-  return actor.effects?.find((e) => e.label === EFFECT_NAME && !e.isSuppressed && !e.disabled);
-}
-
+// TODO: remove when minimum Foundry is v11
 async function getSourceName(effect) {
-  // workaround https://gitlab.com/foundrynet/foundryvtt/-/issues/6702
-  effect.sourceName;
-  await new Promise((resolve) => setTimeout(resolve, 100));
+  if (game.release.generation >= 11) return effect.sourceName;
 
-  const sourceName = effect.sourceName;
-  if (sourceName === "None" || sourceName === "Unknown") return undefined;
-  return sourceName;
+  // workaround https://github.com/foundryvtt/foundryvtt/issues/6702
+  await effect._getSourceName();
+  return effect.sourceName;
 }
 
 /**
