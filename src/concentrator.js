@@ -9,6 +9,20 @@ const EFFECT_NAME = "Concentrating";
 Hooks.once("init", () => {
   log("initializing Concentrator");
   initSettings();
+
+  // add advantage/bonus to Special Traits
+  CONFIG.DND5E.characterFlags["concentrationAdvantage"] = {
+    name: "Advantage on Concentration",
+    hint: "Provided by feats, like War Caster, or magical items.",
+    section: "DND5E.Concentration",
+    type: Boolean,
+  };
+  CONFIG.DND5E.characterFlags["concentrationBonus"] = {
+    name: "Concentration Bonus",
+    hint: "A bonus to saving throws to maintain concentration. Supports dynamic values such as @prof, dice, as well as flat numbers.",
+    section: "DND5E.Concentration",
+    type: String,
+  };
 });
 
 /**
@@ -204,8 +218,22 @@ async function onButtonClick(event) {
   switch (button.dataset.action) {
     case "concentration":
       const speaker = ChatMessage.getSpeaker({ scene: canvas.scene, token: actor.token });
-      // TODO: use Midi flags for adv/dis and bonuses
-      await actor.rollAbilitySave(button.dataset.ability, { event, speaker });
+      // check for Advantage and set AR's label
+      const advantage = actor.getFlag("dnd5e", "concentrationAdvantage");
+      const dialogOptions = {};
+      if (advantage)
+        setProperty(dialogOptions, "adv-reminder.advantageLabels", ["Advantage on Concentration"]);
+      // check for Bonus
+      let bonus = actor.getFlag("dnd5e", "concentrationBonus");
+      if (bonus) bonus = [bonus];
+
+      await actor.rollAbilitySave(button.dataset.ability, {
+        event,
+        speaker,
+        advantage,
+        dialogOptions,
+        parts,
+      });
       break;
     case "removeEffect":
       const effect = actor.effects.get(button.dataset.effectId);
