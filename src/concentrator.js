@@ -39,6 +39,28 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) =>
   registerPackageDebugFlag("concentrator")
 );
 
+Hooks.on("renderAbilityUseDialog", async (dialog, html) => {
+  debug("renderAbilityUseDialog hook called", dialog.item);
+
+  const item = dialog.item;
+
+  if (item.system.components?.concentration) {
+    // if the actor is already concentrating, show a warning
+    const effect = concentratingOn(item.actor);
+    if (effect) {
+      const name = await getSourceName(effect);
+      // create warning message
+      const p = document.createElement("p");
+      p.innerText = `If you cast this spell, it will end concentration on ${name}`;
+      p.classList.add("notification");
+      p.classList.add("warning");
+      // add warning after notes and reset height to avoid scrollbar
+      html[0].querySelector(".notes").after(p);
+      dialog.setPosition({ height: "auto" });
+    }
+  }
+});
+
 /**
  * Hook when an item is used that detects when a spell w/ concentration is cast.
  */
@@ -60,6 +82,10 @@ Hooks.on("dnd5e.useItem", (item, config, options, templates) => {
  */
 async function addConcentration(item, actor) {
   log(`will add concentration to ${actor?.name}`);
+
+  // remove concentration if it already exists
+  const effect = concentratingOn(actor);
+  if (effect) await effect.delete();
 
   // find the DFreds Convenient Effect version of Concentrating
   let statusEffect = game.dfreds.effectInterface.findEffectByName(EFFECT_NAME);
@@ -125,9 +151,7 @@ Hooks.on("updateActor", async (actor, updateData, options, userId) => {
   if (userId !== game.userId) return;
 
   // check for flag and concentrating
-  const effect = actor.effects?.find(
-    (e) => e.label === EFFECT_NAME && !e.isSuppressed && !e.disabled
-  );
+  const effect = concentratingOn(actor);
   if (options.originalHpValue && effect) {
     // compute damage taken
     const damage =
@@ -143,6 +167,10 @@ Hooks.on("updateActor", async (actor, updateData, options, userId) => {
     }
   }
 });
+
+function concentratingOn(actor) {
+  return actor.effects?.find((e) => e.label === EFFECT_NAME && !e.isSuppressed && !e.disabled);
+}
 
 // TODO: remove when minimum Foundry is v11
 async function getSourceName(effect) {

@@ -1,3 +1,8 @@
+# 2.1
+
+- Remove existing concentration before adding the effect so the actor isn't concentrating on two things
+- Add warning when casting a concentration spell that it'll remove existing effect
+
 # 2.0
 
 - Use a custom chat card to add a Remove Concentration Effect button
