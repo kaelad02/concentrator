@@ -231,7 +231,7 @@ async function onButtonClick(event) {
         speaker,
         advantage,
         dialogOptions,
-        parts,
+        parts: bonus,
       });
       break;
     case "removeEffect":

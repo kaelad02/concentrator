@@ -1,8 +1,9 @@
-# 1.2
+# 2.0
 
 - Use a custom chat card to add a Remove Concentration Effect button
 - Add advantage and bonus to concentration checks in the Special Traits section of the character sheet
 - little bits of code cleanup
+- verified with v11
 
 # 1.1
 
