@@ -32,6 +32,9 @@
   "esmodules": [
     "src/concentrator.js"
   ],
+  "styles": [
+    "css/concentrator.css"
+  ],
   "url": "replaced by workflow",
   "manifest": "replaced by workflow",
   "download": "replaced by workflow",

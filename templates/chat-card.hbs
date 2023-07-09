@@ -1,0 +1,26 @@
+<div class="dnd5e chat-card item-card" data-actor-id="{{actorId}}"
+     {{#if tokenId}}data-token-id="{{tokenId}}"{{/if}}>
+    <header class="card-header flexrow">
+        <img src="modules/concentrator/img/concentrating.svg" title="Concentration Check" width="36" height="36"/>
+        <h3 class="item-name">Concentration Check</h3>
+    </header>
+
+    <div class="card-content">
+        {{{description}}}
+    </div>
+
+    <div class="custom-card-buttons">
+        <button data-action="concentration" data-ability="{{ability}}">
+            {{ localize "DND5E.SavingThrow" }} {{ localize "DND5E.SaveDC" dc=saveDC ability=abilityLabel }}
+        </button>
+
+        <button data-action="removeEffect" data-effect-id="{{effectId}}">Remove Concentration Effect</button>
+    </div>
+
+    {{!-- TODO: add details about concentration, like the source and remaining duration? --}}
+    {{!-- <footer class="card-footer">
+        {{#each data.properties}}
+        <span>{{this}}</span>
+        {{/each}}
+    </footer> --}}
+</div>

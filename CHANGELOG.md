@@ -1,3 +1,8 @@
+# 1.2
+
+- Use a custom chat card to add a Remove Concentration Effect button
+- Add advantage and bonus to concentration checks in the Special Traits section of the character sheet
+
 # 1.1
 
 - Fix for not triggering concentration checks since a CE flag was moved

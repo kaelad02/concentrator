@@ -1,0 +1,10 @@
+/* copied from dnd5e but renamed "card-buttons" to "custom-card-buttons" */
+.dnd5e.chat-card .custom-card-buttons {
+  margin: 5px 0;
+}
+.dnd5e.chat-card .custom-card-buttons button {
+  font-size: 12px;
+  height: 24px;
+  line-height: 20px;
+  margin: 2px 0;
+}

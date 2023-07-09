@@ -9,7 +9,28 @@ const EFFECT_NAME = "Concentrating";
 Hooks.once("init", () => {
   log("initializing Concentrator");
   initSettings();
+
+  // add advantage/bonus to Special Traits
+  CONFIG.DND5E.characterFlags["concentrationAdvantage"] = {
+    name: "Advantage on Concentration",
+    hint: "Provided by feats, like War Caster, or magical items.",
+    section: "DND5E.Concentration",
+    type: Boolean,
+  };
+  CONFIG.DND5E.characterFlags["concentrationBonus"] = {
+    name: "Concentration Bonus",
+    hint: "A bonus to saving throws to maintain concentration. Supports dynamic values such as @prof, dice, as well as flat numbers.",
+    section: "DND5E.Concentration",
+    type: String,
+  };
 });
+
+/**
+ * Register a click listener for the concentration chat card buttons.
+ */
+Hooks.on("renderChatLog", (app, html, data) =>
+  html.on("click", ".custom-card-buttons button", onButtonClick)
+);
 
 /**
  * Register with Developer Mode for a debug flag.
@@ -118,7 +139,7 @@ Hooks.on("updateActor", async (actor, updateData, options, userId) => {
     // make check
     if (damage > 0) {
       const sourceName = await getSourceName(effect);
-      await concentrationCheck(damage, actor, sourceName);
+      await concentrationCheck(damage, actor, sourceName, effect.id);
     }
   }
 });
@@ -142,39 +163,88 @@ async function getSourceName(effect) {
  * @param {number} damage the damage taken
  * @param {Actor5e} actor who should make the check
  * @param {string} sourceName the source of concentration
+ * @param {string} effectId the concentration effect's ID
  * @returns {Promise<ChatMessage>} the chat message for the concentration item card
  */
-async function concentrationCheck(damage, actor, sourceName) {
+async function concentrationCheck(damage, actor, sourceName, effectId) {
   log(`triggering a concentration check for ${actor?.name}`);
 
   // compute the save DC
   const saveDC = Math.max(10, Math.floor(damage / 2));
   debug(`computed saveDC ${saveDC}`);
 
-  // create a Concentration Check item
-  const itemData = {
-    system: {
-      actionType: "save",
-      chatFlavor: sourceName,
-      save: {
-        ability: "con",
-        dc: saveDC,
-        scaling: "flat",
-      },
-    },
-    img: "modules/concentrator/img/concentrating.svg",
-    name: "Concentration Check",
-    type: "feat",
+  // Render the chat card template
+  const token = actor.token;
+  const ability = "con";
+  const templateData = {
+    actorId: actor.id,
+    tokenId: token?.uuid || null,
+    description: `Took ${damage} damage, so you must make a concentration check.`,
+    ability,
+    abilityLabel: CONFIG.DND5E.abilities[ability]?.label ?? CONFIG.DND5E.abilities[ability] ?? "",
+    saveDC,
+    effectId,
   };
+  const html = await renderTemplate("modules/concentrator/templates/chat-card.hbs", templateData);
 
-  const ownedItem = await CONFIG.Item.documentClass.create(itemData, {
-    parent: actor,
-    temporary: true,
-  });
-  ownedItem.getSaveDC();
-
-  // display item card
-  const chatData = await ownedItem.displayCard({ createMessage: false });
-  chatData.flags["dnd5e.itemData"] = itemData;
+  // Create the ChatMessage
+  const chatData = {
+    user: game.user.id,
+    type: CONST.CHAT_MESSAGE_TYPES.OTHER,
+    content: html,
+    flavor: sourceName,
+    speaker: ChatMessage.getSpeaker({ actor, token }),
+  };
   return ChatMessage.create(chatData);
+}
+
+/**
+ * The click handler for the concentration card buttons.
+ * @param {Event} event the event
+ */
+async function onButtonClick(event) {
+  event.preventDefault();
+  debug("onButtonClick called");
+
+  // Extract card data
+  const button = event.currentTarget;
+  button.disabled = true;
+  const card = button.closest(".chat-card");
+
+  // Recover the actor for the chat card
+  const actor = await dnd5e.documents.Item5e._getChatCardActor(card);
+  if (!actor) return;
+
+  // Validate permission to proceed with the roll
+  if (!actor.isOwner) return;
+
+  // Handle different actions
+  switch (button.dataset.action) {
+    case "concentration":
+      const speaker = ChatMessage.getSpeaker({ scene: canvas.scene, token: actor.token });
+      // check for Advantage and set AR's label
+      const advantage = actor.getFlag("dnd5e", "concentrationAdvantage");
+      const dialogOptions = {};
+      if (advantage)
+        setProperty(dialogOptions, "adv-reminder.advantageLabels", ["Advantage on Concentration"]);
+      // check for Bonus
+      let bonus = actor.getFlag("dnd5e", "concentrationBonus");
+      if (bonus) bonus = [bonus];
+
+      await actor.rollAbilitySave(button.dataset.ability, {
+        event,
+        speaker,
+        advantage,
+        dialogOptions,
+        parts,
+      });
+      break;
+    case "removeEffect":
+      const effect = actor.effects.get(button.dataset.effectId);
+      if (effect) await effect.delete();
+      break;
+  }
+
+  // Re-enable the button
+  button.disabled = false;
 }
