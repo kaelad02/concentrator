@@ -161,10 +161,7 @@ Hooks.on("updateActor", async (actor, updateData, options, userId) => {
       actor.system.attributes.hp.value;
     debug(`damage taken: ${damage}`);
     // make check
-    if (damage > 0) {
-      const sourceName = await getSourceName(effect);
-      await concentrationCheck(damage, actor, sourceName, effect.id);
-    }
+    if (damage > 0) await concentrationCheck(damage, actor, effect);
   }
 });
 
@@ -185,16 +182,28 @@ async function getSourceName(effect) {
  * Display an item card in chat for the concentration check.
  * @param {number} damage the damage taken
  * @param {Actor5e} actor who should make the check
- * @param {string} sourceName the source of concentration
- * @param {string} effectId the concentration effect's ID
+ * @param {ActiveEffect} effect the concentration effect
  * @returns {Promise<ChatMessage>} the chat message for the concentration item card
  */
-async function concentrationCheck(damage, actor, sourceName, effectId) {
+async function concentrationCheck(damage, actor, effect) {
   log(`triggering a concentration check for ${actor?.name}`);
 
   // compute the save DC
   const saveDC = Math.max(10, Math.floor(damage / 2));
   debug(`computed saveDC ${saveDC}`);
+
+  // format the description
+  const actorName = actor.token?.name ?? actor.name;
+  const description = await TextEditor.enrichHTML(
+    `${actorName} took <strong>${damage} damage</strong> and must make a <strong>DC ${saveDC} Constitution saving throw</strong> to maintain concentration on @UUID[${effect.origin}].`,
+    {
+      secrets: false,
+      documents: true,
+      links: false,
+      rolls: false,
+      async: true,
+    }
+  );
 
   // Render the chat card template
   const token = actor.token;
@@ -202,11 +211,11 @@ async function concentrationCheck(damage, actor, sourceName, effectId) {
   const templateData = {
     actorId: actor.id,
     tokenId: token?.uuid || null,
-    description: `Took ${damage} damage, so you must make a concentration check.`,
+    description,
     ability,
     abilityLabel: CONFIG.DND5E.abilities[ability]?.label ?? CONFIG.DND5E.abilities[ability] ?? "",
     saveDC,
-    effectId,
+    effectId: effect.id,
   };
   const html = await renderTemplate("modules/concentrator/templates/chat-card.hbs", templateData);
 
@@ -215,8 +224,7 @@ async function concentrationCheck(damage, actor, sourceName, effectId) {
     user: game.user.id,
     type: CONST.CHAT_MESSAGE_TYPES.OTHER,
     content: html,
-    flavor: sourceName,
-    speaker: ChatMessage.getSpeaker({ actor, token }),
+    speaker: ChatMessage.getSpeaker({ alias: "Concentrator" }),
   };
   return ChatMessage.create(chatData);
 }

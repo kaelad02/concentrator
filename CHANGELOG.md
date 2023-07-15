@@ -1,3 +1,7 @@
+# 2.2
+
+- enhance the concentration check card with a better description and a couple other cosmetic tweaks
+
 # 2.1
 
 - Remove existing concentration before adding the effect so the actor isn't concentrating on two things
